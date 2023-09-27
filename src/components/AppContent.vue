@@ -2,13 +2,11 @@
 import { storeToRefs } from 'pinia'
 import defaultImage from '@/assets/images/image.png'
 import UiButton from './UI/UiButton.vue'
-import UiLoader from './UI/UiLoader.vue'
-import { useDocumentsStore } from '@/stores/documents'
+import { useDocumentStore } from '@/stores/document'
 import useContent from '@/hooks/useContent'
 
-const store = useDocumentsStore()
-const { removeDocument } = store
-const { document, isLoadingDoc: isLoading } = storeToRefs(store)
+const store = useDocumentStore()
+const { document, selected } = storeToRefs(store)
 const { downloadDocument } = useContent()
 
 const handleDownload = () => {
@@ -16,46 +14,30 @@ const handleDownload = () => {
     downloadDocument({ text: document.value?.description!, name: document.value?.name })
   }
 }
-
-const handleRemove = (id: number) => {
-  if (confirm('Удалить документ?')) {
-    removeDocument(id)
-  }
-}
 </script>
 
 <template>
-  <UiLoader v-if="isLoading" />
-  <template v-else>
-    <div v-if="!document" :class="$style.empty">
-      Выберите документ, чтобы посмотреть его содержиое
-    </div>
-    <div :class="$style.wrapper" v-else>
-      <div :class="$style.document">
-        <div :class="$style.imageWrapper">
-          <img
-            :class="$style.image"
-            :src="document.image || defaultImage"
-            alt="Изображение документа"
-          />
+  <div :class="$style.wrapper" v-if="document && selected">
+    <div :class="$style.document">
+      <div :class="$style.imageWrapper">
+        <img
+          :class="$style.image"
+          :src="document.image || defaultImage"
+          alt="Изображение документа"
+        />
+      </div>
+      <div>
+        <h3 class="block-title" :class="$style.title">{{ document.name }}</h3>
+        <div :class="$style.buttons">
+          <UiButton @click="handleDownload">Скачать</UiButton>
+          <UiButton variant="danger" :disabled="!document.image">Удалить</UiButton>
         </div>
-        <div>
-          <h3 class="block-title" :class="$style.title">{{ document.name }}</h3>
-          <div :class="$style.buttons">
-            <UiButton @click="handleDownload">Скачать</UiButton>
-            <UiButton
-              variant="danger"
-              @click="handleRemove(document.id)"
-              :disabled="!document.image"
-              >Удалить</UiButton
-            >
-          </div>
-          <h3 class="block-title" :class="$style.title">Описание:</h3>
-          <p>{{ document.description }}</p>
-        </div>
+        <h3 class="block-title" :class="$style.title">Описание:</h3>
+        <p>{{ document.description }}</p>
       </div>
     </div>
-  </template>
+  </div>
+  <div :class="$style.empty" v-else>Выберите документ, чтобы посмотреть его содержиое</div>
 </template>
 
 <style module>

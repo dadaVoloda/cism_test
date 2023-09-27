@@ -1,21 +1,36 @@
 <script setup lang="ts">
+import { useDocumentStore } from '@/stores/document'
 import { useSearchStore } from '@/stores/search'
 import { storeToRefs } from 'pinia'
+import { ref } from 'vue'
 
+const documentsStore = useDocumentStore()
 const store = useSearchStore()
 const { search } = storeToRefs(store)
+const { getDocument } = documentsStore
+
+const canSubmit = ref(true)
+
+const handleSubmit = () => {
+  if (search.value && canSubmit.value) {
+    canSubmit.value = false
+    getDocument(search.value)
+    setTimeout(() => (canSubmit.value = true), 0)
+  }
+}
 </script>
 
 <template>
-  <div>
+  <form @submit.prevent="handleSubmit">
     <h3 class="block-title" :class="$style.title">Поиск документа</h3>
     <input
       :class="$style.input"
       type="text"
       v-model.trim="search"
+      @change="handleSubmit"
       placeholder="Введите ID документа"
     />
-  </div>
+  </form>
 </template>
 
 <style module>

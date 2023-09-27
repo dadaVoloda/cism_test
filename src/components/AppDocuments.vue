@@ -1,28 +1,16 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useDocumentsStore } from '@/stores/documents'
-import { useSearchStore } from '@/stores/search'
+import { useDocumentStore } from '@/stores/document'
 import AppDocument from './AppDocument.vue'
 import UiLoader from './UI/UiLoader.vue'
 
-const documentsStore = useDocumentsStore()
-const searchStore = useSearchStore()
+const documentsStore = useDocumentStore()
 
-const { getDocuments, getDocument } = documentsStore
-const { documents, isLoadingDocs: isLoading } = storeToRefs(documentsStore)
-const { search } = storeToRefs(searchStore)
+const { changeSelected } = documentsStore
+const { document, isLoading, selected } = storeToRefs(documentsStore)
 
-const selectedId = ref<number | null>(null)
-const searchedDocs = computed(() =>
-  search.value ? documents.value.filter((doc) => doc.id === Number(search.value)) : documents.value
-)
-
-onMounted(() => getDocuments())
-
-const selectItem = (id: number) => {
-  selectedId.value = id
-  getDocument(id)
+const selectItem = () => {
+  changeSelected(true)
 }
 </script>
 
@@ -31,17 +19,10 @@ const selectItem = (id: number) => {
     <h3 class="block-title" :class="$style.title">Результаты</h3>
     <UiLoader v-if="isLoading" :style="{ height: 'calc(100% - 40px)' }" />
     <template v-else>
-      <div :class="$style.empty" v-if="!searchedDocs.length">Ничего не найдено</div>
+      <div :class="$style.empty" v-if="!document">Ничего не найдено</div>
       <ul :class="$style.list" v-else>
-        <li
-          v-for="document in searchedDocs"
-          :class="$style.listItem"
-          :key="document.id"
-          @click="selectItem(document.id)"
-          @keydown.space="selectItem(document.id)"
-          tabindex="0"
-        >
-          <AppDocument :isActive="selectedId === document.id" :document="document" />
+        <li :class="$style.listItem" @click="selectItem" @keydown.space="selectItem" tabindex="0">
+          <AppDocument :isActive="selected" :document="document" />
         </li>
       </ul>
     </template>
@@ -94,8 +75,8 @@ const selectItem = (id: number) => {
 }
 
 @media (max-width: 767px) {
-  .list {
-    height: 220px;
+  .documents {
+    min-height: 130px;
   }
 }
 </style>
